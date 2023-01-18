@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Class">
+      <UniqueIdentifier>{5eb5e35b-ae67-493c-9abe-15382c88e5b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Class\cPlayer">
+      <UniqueIdentifier>{93ce6cfc-2bfa-40a3-8372-9996c193b4b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Class\cCard">
+      <UniqueIdentifier>{055f046e-8541-4862-a5d5-eb3ce63a526f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Class\cBangCore">
+      <UniqueIdentifier>{66f0bc84-1988-449a-9905-4a5ae6a79a5b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="cPlayer.cpp">
+      <Filter>Class\cPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="cCard.cpp">
+      <Filter>Class\cCard</Filter>
+    </ClCompile>
+    <ClCompile Include="cBangCore.cpp">
+      <Filter>Class\cBangCore</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cPlayer.h">
+      <Filter>Class\cPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="enumCards.h" />
+    <ClInclude Include="cCard.h">
+      <Filter>Class\cCard</Filter>
+    </ClInclude>
+    <ClInclude Include="cBangCore.h">
+      <Filter>Class\cBangCore</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h" />
+  </ItemGroup>
+</Project>
