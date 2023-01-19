@@ -25,6 +25,7 @@ int main()
 {
 	system("mode con cols=200 lines=50");
 
+
 	// Setup
 	cBangCore Game(NUMBEROFPLAYERS, NULL);
 	Game.init();
