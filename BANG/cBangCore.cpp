@@ -32,11 +32,16 @@ void cBangCore::addPlayer(std::vector<cPlayer>* _stlvpPlayerVector, std::vector<
 
 int cBangCore::getNextTurn(int _iTurn)
 {
-	if (_iTurn + 1 >= this->m_iNumOfPlayers)
+	int iTurn = _iTurn;
+	do 
 	{
-		return 0;
-	}
-	return _iTurn + 1;
+		++iTurn;
+		if (iTurn >= this->m_iNumOfPlayers)
+		{
+			iTurn = 0;
+		}
+	} while (this->m_stlvOutTurn.size() > 0 && std::count(this->m_stlvOutTurn.begin(), this->m_stlvOutTurn.end(), iTurn));
+	return iTurn;
 }
 
 std::vector<cPlayer>* cBangCore::makePlayerVector(int _iMode)
@@ -202,9 +207,12 @@ std::vector<cCard>* cBangCore::makeDrawPile()
 	return stlvpDrawPile;
 }
 
-bool cBangCore::executePhaseZero(int _iTurn)
+bool cBangCore::executePhase_0(int _iTurn)
 {
-	checkDynamite(_iTurn);
+	if (checkDynamite(_iTurn))
+	{
+		return true;
+	}
 
 	if (checkJail(_iTurn))
 	{
@@ -279,7 +287,7 @@ void cBangCore::deleteCardFromHand(int _iTurn, ePlayingCard _ePlayingCard, std::
 	}
 }
 
-void cBangCore::Damage(int _iPlayer, int _iValue)
+bool cBangCore::Damage(int _iPlayer, int _iValue)
 {
 	if (this->m_stlvpPlayerVector->at(_iPlayer).m_iLife <= _iValue)
 	{
@@ -296,29 +304,37 @@ void cBangCore::Damage(int _iPlayer, int _iValue)
 			}
 			else
 			{
-				std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)맥주 사용을 거부하였으므로 사망하였습니다";
+				std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)맥주 사용을 거부하였으므로 사망하였습니다" << std::endl;
+
+				this->m_stlvOutTurn.push_back(_iPlayer);
+				return true;
 			}
 		}
 		else
 		{
-			std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)사망하였습니다";
+			std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)사망하였습니다" << std::endl;
+			this->m_stlvOutTurn.push_back(_iPlayer);
+			return true;
 		}
 	}
 	else
 	{
 		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)" << _iValue << "의 피해를 입었습니다" << std::endl;
 		this->m_stlvpPlayerVector->at(_iPlayer).m_iLife -= _iValue;
-		if (this->m_stlvpPlayerVector->at(_iPlayer).m_eCharacter == eCharacter::BART_CASSIDY)
+	}
+
+	if (this->m_stlvpPlayerVector->at(_iPlayer).m_eCharacter == eCharacter::BART_CASSIDY)
+	{
+		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iPlayer).m_eCharacter) << "(Damage)BART CASSIDY는 능력을 이용해 카드를 가져옵니다" << std::endl;
+		for (int i = 0; i < _iValue; ++i)
 		{
-			for (int i = 0; i < _iValue; ++i)
-			{
-				drawCard(_iPlayer);
-			}
+			drawCard(_iPlayer);
 		}
 	}
+	return false;
 }
 
-void cBangCore::checkDynamite(int _iTurn)
+bool cBangCore::checkDynamite(int _iTurn)
 {
 	if (1 == this->m_stlvpPlayerVector->at(_iTurn).m_chDynamite)
 	{
@@ -328,13 +344,18 @@ void cBangCore::checkDynamite(int _iTurn)
 	else if (2 == this->m_stlvpPlayerVector->at(_iTurn).m_chDynamite)
 	{
 		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkDynamite)다이너마이트가 감지되었습니다. 카드를 확인합니다" << std::endl;
-		cCard cpTempCard(checkCard());
-		discardCard(cpTempCard);
-		if (cpTempCard.m_eCardSuit == eCardSuit::SPADE && cpTempCard.m_iCardNumber >= 2 && cpTempCard.m_iCardNumber <= 9)
+		cCard cTempCard(checkCard());
+		discardCard(cTempCard);
+		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkDynamite)" << getCardName(cTempCard.m_eCardName) << "(" << getSuit(cTempCard.m_eCardSuit) << cTempCard.m_iCardNumber << ") 뽑음" << std::endl;
+		if (cTempCard.m_eCardSuit == eCardSuit::SPADE && cTempCard.m_iCardNumber >= 2 && cTempCard.m_iCardNumber <= 9)
 		{
 			std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkDynamite)다이너마이트가 폭발했습니다" << std::endl;
+			this->m_stlvpPlayerVector->at(_iTurn).m_chDynamite = 0;
 			discardCard(cCard(ePlayingCard::DYNAMITE, eCardSuit::HEART, 2));
-			Damage(_iTurn, 3);
+			if (Damage(_iTurn, 3))
+			{
+				return true;
+			}
 		}
 		else
 		{
@@ -343,26 +364,40 @@ void cBangCore::checkDynamite(int _iTurn)
 			this->m_stlvpPlayerVector->at(getNextTurn(_iTurn)).m_chDynamite = 2;
 		}
 	}
+	return false;
 }
 
 bool cBangCore::checkJail(int _iTurn)
 {
 	if (this->m_stlvpPlayerVector->at(_iTurn).m_bJail)
 	{
+		this->m_stlvpPlayerVector->at(_iTurn).m_bJail = false;
+
 		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkJail)감옥이 감지되었습니다. 카드를 확인합니다" << std::endl;
 		discardCard(cCard(ePlayingCard::JAIL, eCardSuit::HEART, 4));
 
-		cCard cpTempCard(checkCard());
-		discardCard(cpTempCard);
-		if (cpTempCard.m_eCardSuit == eCardSuit::HEART)
+		cCard cTempCard(checkCard());
+
+		std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkJail)" << getCardName(cTempCard.m_eCardName) << "(" << getSuit(cTempCard.m_eCardSuit) << cTempCard.m_iCardNumber << ") 뽑음" << std::endl;
+
+		discardCard(cTempCard);
+		if (cTempCard.m_eCardSuit == eCardSuit::HEART)
 		{
+			std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkJail)하트 문양을 뽑았으므로 감옥에서 탈출합니다" << std::endl;
 			return false;
 		}
 		else
 		{
+			std::cout << getCharacterName(m_stlvpPlayerVector->at(_iTurn).m_eCharacter) << "(checkJail)하트 문양을 뽑지 못했으므로 턴을 넘깁니다" << std::endl;
 			return true;
 		}
 	}
+	return false;
+}
+
+bool cBangCore::executePhase_1(int _iTurn)
+{
+	return false;
 }
 
 void cBangCore::drawCard(int _iTurn)
@@ -382,9 +417,11 @@ cBangCore::~cBangCore()
 cBangCore::cBangCore(int _iNumOfPlayers, int _iMode)
 	:
 	m_iNumOfPlayers(_iNumOfPlayers),
+	m_stlvOutTurn(),
 	m_stlvpPlayerVector(),
 	m_stlvpDrawPile(nullptr),
-	m_stlvpDiscardPile(nullptr)
+	m_stlvpDiscardPile(nullptr),
+	m_iGameOver(0)
 {
 	m_stlvpPlayerVector = makePlayerVector(_iMode);
 	m_stlvpDrawPile = makeDrawPile();

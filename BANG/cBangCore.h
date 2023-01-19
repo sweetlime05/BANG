@@ -16,9 +16,12 @@ class cBangCore
 {
 public:
 	int m_iNumOfPlayers;
+	std::vector<int> m_stlvOutTurn;
 	std::vector<cPlayer>* m_stlvpPlayerVector;
 	std::vector<cCard>* m_stlvpDrawPile;
 	std::vector<cCard>* m_stlvpDiscardPile;
+
+	int m_iGameOver;
 
 public:
 	void					init();
@@ -33,7 +36,7 @@ public:
 
 	std::vector<cCard>*		makeDrawPile();
 
-	bool					executePhaseZero(int _iTurn);
+	bool					executePhase_0(int _iTurn);
 	cCard					checkCard();
 	inline void				cancelCheckCard(cCard _cCard);
 	inline void				discardCard(cCard _cCard);
@@ -41,13 +44,15 @@ public:
 	std::vector<cCard>		chooseCardFromHand(int _iTurn, ePlayingCard _ePlayingCard, int _iNumber);
 	void					deleteCardFromHand(int _iTurn, ePlayingCard _ePlayingCard, std::vector<cCard> _stlvValue);
 
-	void					Damage(int _iPlayer, int _iValue);
+	bool					Damage(int _iPlayer, int _iValue);
 
-	void					checkDynamite(int _iTurn);
+	bool					checkDynamite(int _iTurn);
 
 	bool					checkJail(int _iTurn);
 
 	void					drawCard(int _iTurn);
+
+	bool					executePhase_1(int _iTurn);
 
 public:
 	cBangCore(int _iNumOfPlayers, int _iMode);

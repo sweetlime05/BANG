@@ -53,7 +53,9 @@ enum class ePlayingCard
 	MUSTANG,
 	BARREL,
 	JAIL,
-	DYNAMITE
+	DYNAMITE,
+
+	COLT45
 };
 
 enum class eCardSuit
